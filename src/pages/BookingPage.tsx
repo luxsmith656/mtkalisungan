@@ -712,9 +712,29 @@ export default function BookingPage() {
         emergency_contact_phone: phoneNumber,
         notes: metaNotes,
         status: 'pending',
-      })
+        location_id: startLocationId,
+        start_location_id: startLocationId,
+        preferred_guide_id: preferredGuideId || null,
+        entry_fee: fees.entryFee,
+        guide_fee: fees.guideFee,
+        total_amount: fees.totalFee,
+        age_bracket: age ? bracketForAge(Number(age)) : '',
+        gender: sex || '',
+        origin_city: city || '',
+        group_type: groupSize > 1 ? 'group' : 'solo',
+      } as any)
       .select()
       .single();
+
+    // Auto-create assignment row if hiker requested a specific guide.
+    if (data && preferredGuideId) {
+      await supabase.from('booking_assignments' as any).insert({
+        booking_id: data.id,
+        guide_id: preferredGuideId,
+        location_id: startLocationId,
+        status: 'pending',
+      } as any);
+    }
 
     if (error) {
       toast.error(error.message);
