@@ -57,6 +57,8 @@ import { cn } from '@/lib/utils';
 import { getPHLocationOptions, COMMON_NATIONALITIES } from '@/lib/ph-locations';
 import { uploadPaymentScreenshot, isFirebaseConfigured } from '@/lib/firebase-storage';
 import type { CompanionDetail } from '@/types';
+import { useLocations } from '@/hooks/useLocations';
+import LocationPreview from '@/components/booking/LocationPreview';
 
 /* ── Weather code → human-readable label (Open-Meteo) ── */
 function weatherCodeToLabel(code: number): string {
@@ -201,6 +203,12 @@ export default function BookingPage() {
   const [medicalNotes, setMedicalNotes] = useState('');
   const [preferredGuide, setPreferredGuide] = useState('');
   const [locationSearch, setLocationSearch] = useState('');
+
+  // ── Multi-location: hiker picks where to start (Lamot 1, Lamot 2, etc.) ──
+  const { locations: allLocations } = useLocations();
+  const [startLocationId, setStartLocationId] = useState<string>('');
+  const [dbGuides, setDbGuides] = useState<Array<{ id: string; full_name: string; location_id: string; per_trip_fee: number }>>([]);
+  const [preferredGuideId, setPreferredGuideId] = useState<string>('');
 
   // ── Guide dropdown options ──
   const [guideOptions, setGuideOptions] = useState<string[]>([]);
