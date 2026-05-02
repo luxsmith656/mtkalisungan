@@ -311,25 +311,38 @@ export default function BookingPage() {
       emailAddress, phoneNumber, province, city, locationSearch,
       companions, companionDetails, medicalNotes, preferredGuide, booking]);
 
-  /* ── Fetch guide names for dropdown ── */
+  /* ── Fetch guides (real DB rows for fee + location scoping; also feeds dropdown names) ── */
   useEffect(() => {
-    const fetchGuideNames = async () => {
-      try {
-        const { data: roles } = await supabase.from('user_roles').select('user_id').eq('role', 'guide');
-        if (!roles || roles.length === 0) {
-          setGuideOptions(['Rodel Manalansan', 'Bong Villarosa', 'Nilo Santos', 'Allan Reyes']);
-          return;
-        }
-        const ids = roles.map((r: any) => r.user_id);
-        const { data: profiles } = await supabase.from('profiles').select('full_name').in('user_id', ids);
-        const names = (profiles || []).map((p: any) => p.full_name).filter(Boolean);
-        setGuideOptions(names.length ? names : ['Rodel Manalansan', 'Bong Villarosa', 'Nilo Santos', 'Allan Reyes']);
-      } catch {
-        setGuideOptions(['Rodel Manalansan', 'Bong Villarosa', 'Nilo Santos', 'Allan Reyes']);
-      }
+    const fetchGuides = async () => {
+      const { data: gs } = await supabase
+        .from('guides' as any)
+        .select('id,full_name,location_id,per_trip_fee,is_active')
+        .eq('is_active', true);
+      const list = ((gs as any[]) ?? []) as Array<{ id: string; full_name: string; location_id: string; per_trip_fee: number }>;
+      setDbGuides(list);
+      const names = list.map((g) => g.full_name).filter(Boolean);
+      setGuideOptions(names.length ? names : ['Rodel Manalansan', 'Bong Villarosa', 'Nilo Santos', 'Allan Reyes']);
     };
-    void fetchGuideNames();
+    void fetchGuides();
   }, []);
+
+  /* ── Auto-pick first active location if none chosen ── */
+  useEffect(() => {
+    if (!startLocationId && allLocations.length > 0) {
+      setStartLocationId(allLocations[0].id);
+    }
+  }, [allLocations, startLocationId]);
+
+  const selectedLocation = useMemo(
+    () => allLocations.find((l) => l.id === startLocationId) || null,
+    [allLocations, startLocationId],
+  );
+
+  const guidesAtLocation = useMemo(
+    () => dbGuides.filter((g) => g.location_id === startLocationId),
+    [dbGuides, startLocationId],
+  );
+
 
   /* ── Capacity fetching ── */
   const fetchMonthCapacity = useCallback(async (year: number, month: number) => {
