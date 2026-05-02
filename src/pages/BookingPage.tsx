@@ -618,8 +618,31 @@ export default function BookingPage() {
   /* ── Submit ── */
   const handleBook = async () => {
     if (!user || !date) return;
+    if (!startLocationId) {
+      toast.error('Please choose a starting location (e.g. Lamot 1).');
+      return;
+    }
+
     const dateStr = format(date, 'yyyy-MM-dd');
     setLoading(true);
+
+    // ── Per-guide-per-day quota: 5 bookings max per guide for the same date.
+    if (preferredGuideId) {
+      const { data: existing, error: qErr } = await supabase
+        .from('booking_assignments' as any)
+        .select('id,status,booking:bookings!inner(booking_date)')
+        .eq('guide_id', preferredGuideId)
+        .in('status', ['pending', 'accepted']);
+      if (!qErr) {
+        const sameDay = ((existing as any[]) ?? []).filter((row: any) => row.booking?.booking_date === dateStr).length;
+        if (sameDay >= 5) {
+          setLoading(false);
+          toast.error('This guide is already at the 5-booking quota for that date. Please pick another guide or date.');
+          return;
+        }
+      }
+    }
+
     const qrData = `KALISUNGAN-${user.id.slice(0, 8)}-${dateStr}-${Date.now()}`;
     const companionNames = companions.map((name) => name.trim()).filter(Boolean);
     const fees = calculateFees(groupSize);
