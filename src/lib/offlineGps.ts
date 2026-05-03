@@ -64,7 +64,7 @@ async function getSqlite(): Promise<any | null> {
   if (!(window as any).Capacitor?.isNativePlatform?.()) return null;
   try {
     if (!sqliteReady) {
-      sqliteReady = import(/* @vite-ignore */ '@capacitor-community/sqlite')
+      sqliteReady = (new Function('m', 'return import(m)'))('@capacitor-community/sqlite')
         .then(async (mod: any) => {
           const sqlite = new mod.SQLiteConnection(mod.CapacitorSQLite);
           const db = await sqlite.createConnection('mtk_gps', false, 'no-encryption', 1, false);
