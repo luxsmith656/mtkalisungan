@@ -11,6 +11,8 @@ import LocationSwitcher from '@/components/layout/LocationSwitcher';
 import RealtimeMonitorMap from '@/components/admin/RealtimeMonitorMap';
 import LGUDemographicsPanel from '@/components/admin/LGUDemographicsPanel';
 import LGUFinancialPanel from '@/components/admin/LGUFinancialPanel';
+import SOSAlertsPanel from '@/components/admin/SOSAlertsPanel';
+import ProvisionLocationWizard from '@/components/admin/ProvisionLocationWizard';
 import { format, subDays, startOfMonth } from 'date-fns';
 
 interface LocStats {
@@ -117,6 +119,13 @@ export default function CentralDashboard() {
               </Card>
             </motion.div>
           ))}
+        </div>
+
+        <div className="grid lg:grid-cols-3 gap-4 mb-6">
+          <div className="lg:col-span-2">
+            <ProvisionLocationWizard onCreated={loadStats} />
+          </div>
+          <SOSAlertsPanel locationId={null} />
         </div>
 
         <Tabs defaultValue="overview">
