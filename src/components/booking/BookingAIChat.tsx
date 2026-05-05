@@ -35,6 +35,10 @@ interface BookingAIChatProps {
   groupComposition?: GroupComposition | null;
   onGroupCompositionSet?: (composition: GroupComposition) => void;
   onTimeSuggest?: (time: string) => void;
+  /** Selected starting location — scopes the AI to that trailhead's checkpoints, surveys, and fees. */
+  locationId?: string | null;
+  /** Optional preferred guide name to share with the AI. */
+  preferredGuideName?: string | null;
 }
 
 const TYPING_DELAY = 750;
@@ -429,6 +433,8 @@ export default function BookingAIChat({
   groupComposition,
   onGroupCompositionSet,
   onTimeSuggest: _onTimeSuggest,
+  locationId,
+  preferredGuideName,
 }: BookingAIChatProps) {
   const [isOpen, setIsOpen] = useState(false);
   const [messages, setMessages] = useState<ChatMsg[]>([]);
@@ -481,7 +487,16 @@ export default function BookingAIChat({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
-        body: JSON.stringify({ messages: thread }),
+        body: JSON.stringify({
+          messages: thread,
+          location_id: locationId ?? null,
+          booking_context: {
+            date: date ? format(date, 'yyyy-MM-dd') : null,
+            hike_type: hikeType,
+            group_size: groupSize,
+            preferred_guide_name: preferredGuideName ?? null,
+          },
+        }),
       });
       if (!resp.ok) return null;
       const reader = resp.body?.getReader();
@@ -514,7 +529,7 @@ export default function BookingAIChat({
     } catch {
       return null;
     }
-  }, [messages]);
+  }, [messages, locationId, date, hikeType, groupSize, preferredGuideName]);
 
   const sendMessage = useCallback(
     async (text: string) => {

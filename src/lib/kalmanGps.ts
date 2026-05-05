@@ -77,8 +77,16 @@ export class GpsKalman {
     const processVarMeters = expectedDriftM * expectedDriftM + 1.0; // +1 baseline
     this.variance += processVarMeters;
 
-    const measVar = accuracy * accuracy;
-    const k = this.variance / (this.variance + measVar);
+    // Adaptive measurement noise: when signal is weak (>30m accuracy),
+    // inflate measurement variance further so the filter trusts prior position.
+    const accInflated = accuracy > 30 ? accuracy * 1.6 : accuracy;
+    const measVar = accInflated * accInflated;
+    let k = this.variance / (this.variance + measVar);
+
+    // Hard cap on Kalman gain in weak-signal mode to suppress jitter (max 0.35).
+    if (accuracy > 40) k = Math.min(k, 0.35);
+    // Even stronger cap for very weak / offline mode.
+    if (accuracy > 70) k = Math.min(k, 0.18);
 
     this.lat = this.lat + k * (p.lat - this.lat);
     this.lon = this.lon + k * (p.lon - this.lon);
@@ -92,6 +100,7 @@ export class GpsKalman {
 /**
  * Decide whether to record a new point on the breadcrumb path.
  * Avoids zigzag while stationary and absorbs tiny jitter.
+ * Stricter thresholds when accuracy is poor.
  */
 export function shouldRecordPoint(
   prev: GpsPoint | null,
@@ -102,11 +111,14 @@ export function shouldRecordPoint(
   const d = haversineMeters(prev, next);
   const acc = next.accuracy ?? 20;
 
-  // Big jump → always record (real movement or signal regain)
-  if (d > 60) return true;
+  // Big jump → require it to dwarf the accuracy circle (avoids ghost teleports).
+  if (d > Math.max(80, acc * 2.5)) return true;
 
   // Stationary → discard small movements
-  if (speedMps < 0.4) return d > Math.max(8, acc * 0.6);
+  if (speedMps < 0.4) return d > Math.max(8, acc * 0.7);
+
+  // Weak signal → only record decisive movement
+  if (acc > 40) return d > Math.max(10, acc * 0.6);
 
   // Walking/moving → require movement bigger than half the accuracy circle
   return d > Math.max(3, acc * 0.4);

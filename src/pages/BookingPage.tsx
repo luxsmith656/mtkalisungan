@@ -1865,6 +1865,8 @@ export default function BookingPage() {
         weatherInsight={weatherInsight}
         groupComposition={groupComposition}
         onGroupCompositionSet={setGroupComposition}
+        locationId={startLocationId || null}
+        preferredGuideName={preferredGuide || null}
       />
 
       {/* Floating AI Insights Panel — right side (desktop) */}
