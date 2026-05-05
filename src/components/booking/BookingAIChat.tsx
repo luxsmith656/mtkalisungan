@@ -498,10 +498,6 @@ export default function BookingAIChat({
           },
         }),
       });
-          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
-        },
-        body: JSON.stringify({ messages: thread }),
-      });
       if (!resp.ok) return null;
       const reader = resp.body?.getReader();
       if (!reader) return null;
@@ -533,7 +529,7 @@ export default function BookingAIChat({
     } catch {
       return null;
     }
-  }, [messages]);
+  }, [messages, locationId, date, hikeType, groupSize, preferredGuideName]);
 
   const sendMessage = useCallback(
     async (text: string) => {
