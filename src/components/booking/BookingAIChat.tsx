@@ -487,6 +487,19 @@ export default function BookingAIChat({
           'Content-Type': 'application/json',
           Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
         },
+        body: JSON.stringify({
+          messages: thread,
+          location_id: locationId ?? null,
+          booking_context: {
+            date: date ? format(date, 'yyyy-MM-dd') : null,
+            hike_type: hikeType,
+            group_size: groupSize,
+            preferred_guide_name: preferredGuideName ?? null,
+          },
+        }),
+      });
+          Authorization: `Bearer ${import.meta.env.VITE_SUPABASE_PUBLISHABLE_KEY}`,
+        },
         body: JSON.stringify({ messages: thread }),
       });
       if (!resp.ok) return null;
