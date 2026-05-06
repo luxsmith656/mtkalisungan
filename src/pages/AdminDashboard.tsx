@@ -1438,6 +1438,8 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            <ForecastPanel locationId={null} />
           </TabsContent>
 
           {/* ─────────────────────────────── ANNOUNCEMENTS TAB ── */}
@@ -2058,7 +2060,6 @@ export default function AdminDashboard() {
           {/* ─────────────────────────────── DEMOGRAPHICS TAB ── */}
           <TabsContent value="demographics" className="space-y-6">
             <DemographicsTab />
-            <ForecastPanel locationId={null} />
           </TabsContent>
         </Tabs>
 
