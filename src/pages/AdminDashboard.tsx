@@ -1438,6 +1438,8 @@ export default function AdminDashboard() {
                 )}
               </CardContent>
             </Card>
+
+            <ForecastPanel locationId={null} />
           </TabsContent>
 
           {/* ─────────────────────────────── ANNOUNCEMENTS TAB ── */}
